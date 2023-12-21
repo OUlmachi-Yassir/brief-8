@@ -1,25 +1,32 @@
 <?php
 require('connection.php');
-require('UserRegistrar.php');
+require('User.php');
 
 $message = '';
 $userRegistrar = new User($conn);
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = mysqli_real_escape_string($conn, stripslashes($_POST['nom']));
-    $surname = mysqli_real_escape_string($conn, stripslashes($_POST['prenom']));
-    $email = mysqli_real_escape_string($conn, stripslashes($_POST['email']));
-    $password = mysqli_real_escape_string($conn, stripslashes($_POST['pass']));
-    $tel = mysqli_real_escape_string($conn, stripslashes($_POST['tel']));
+if (isset($_POST['submit'])) {
+    // Assuming your form has fields named 'username', 'surname', 'email', 'password', 'tel'
+    $username = $_POST['nom'];
+    $surname = $_POST['prenom'];
+    $email = $_POST['email'];
+    $password = $_POST['pass'];
+    $tel = $_POST['tel'];
 
+    // Call the registerUser method
     $result = $userRegistrar->registerUser($username, $surname, $email, $password, $tel);
 
     if ($result === true) {
-        $message = "Inscription réussie. Vous pouvez maintenant vous connecter.";
+        echo "Registration successful!";
+        // Redirect to a success page or perform other actions
     } else {
-        $message = $result;
+        echo "Registration failed. Error: " . $result;
+        // Handle the error, show it to the user, or redirect to an error page
     }
 }
+
+// Close the database connection
+mysqli_close($conn);
 ?>
 <!DOCTYPE html>
 <html lang="en">

@@ -1,16 +1,33 @@
 <?php
-include("connection.php");
-include("ajouteP.php");
-include("ajouteSM.php");
-// Initialiser la session
+require("connection.php");
+require ("projet.php");
 session_start();
-// Vérifiez si l'utilisateur est connecté, sinon redirigez-le vers la page de connexion
+
+$projectsHandler = new Projects();
+$options = $projectsHandler->getProjectOptions();
+$memberOptions = $projectsHandler->getMemberOptions();
+
 if (!isset($_SESSION["email"])) {
     header("Location: login.php");
     exit();
 }
 
-$user_firstname = isset($_SESSION["prenom"]) ? $_SESSION["prenom"] : "";
+
+if (isset($_POST["submit"])) {
+    $nomp = $_POST["nom_pro"];
+    $descP = $_POST["descrp_pro"];
+
+    $result =$projectsHandler->addProject(null, $nomp, $descP);
+    
+    if ($result === true) {
+        // Projet ajouté avec succès
+        echo "succe";
+    } else {
+        // Une erreur s'est produite lors de l'ajout du projet
+        echo "Erreur lors de l'ajout du projet : " . $result;
+    }
+}
+
 
 ?>
 
@@ -22,13 +39,12 @@ $user_firstname = isset($_SESSION["prenom"]) ? $_SESSION["prenom"] : "";
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
     <title>DataWare</title>
+
 </head>
 
 <body>
 
     <!-- navbar  -->
-
-
     <nav class="bg-black">
         <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
         <a class="text-3xl font-bold font-heading bg-gradient-to-r from-orange-500 via-white to-orange-500 text-transparent bg-clip-text" href="#">
@@ -58,10 +74,10 @@ $user_firstname = isset($_SESSION["prenom"]) ? $_SESSION["prenom"] : "";
             <div class="px-4 sm:px-6 lg:px-8">
                 <div class="sm:flex sm:items-center">
                     <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-                    <h1 class="mb-4 text-3xl font-bold leading-none tracking-tight text-gray-900 md:text-3xl lg:text-4xl dark:text-white"> Welcome,<span class="text-orange-500"> <?php echo htmlspecialchars($user_firstname); ?>!</span></h1>   
+                    <h1 class="mb-4 text-3xl font-bold leading-none tracking-tight text-gray-900 md:text-3xl lg:text-4xl dark:text-white"> Welcome,<span class="text-orange-500"> !</span></h1>   
                     <h1 class="mb-12 text-3xl font-bold leading-none tracking-tight text-gray-900 md:text-3xl lg:text-4xl dark:text-white">Affichage des projets</h1>
                         <!-- <a href="add.php"> -->
-                        <button onclick="openFormPopup4()" type="button" class=" relative flex rounded-lg h-[50px] w-40 items-center justify-center overflow-hidden bg-gray-800 text-white shadow-2xl transition-all before:absolute before:h-0 before:w-0 before:rounded-full before:bg-orange-600 before:duration-500 before:ease-out hover:shadow-orange-600 hover:before:h-56 hover:before:w-56"> <span class="relative z-10">Ajouter un Projet</span></button>
+                        <button id = "openBtn" type="button" class=" relative flex rounded-lg h-[50px] w-40 items-center justify-center overflow-hidden bg-gray-800 text-white shadow-2xl transition-all before:absolute before:h-0 before:w-0 before:rounded-full before:bg-orange-600 before:duration-500 before:ease-out hover:shadow-orange-600 hover:before:h-56 hover:before:w-56"> <span class="relative z-10">Ajouter un Projet</span></button>
                         <div id="overlay4" class="hidden fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-40 opacity-0 transition-opacity duration-300 ease-in-out "></div>
                         <div id="popup-form4" class="hidden fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 p-4 bg-white border border-gray-300 shadow-md z-50 opacity-1 scale-110 transition-opacity transition-transform duration-300 ease-in-out ">
                             <div class="">
@@ -133,11 +149,15 @@ $user_firstname = isset($_SESSION["prenom"]) ? $_SESSION["prenom"] : "";
 
                                         <tr>
                                             <?php
-                                            $sql = "SELECT * FROM projet  where nom_pro <> 'none'";
-                                            $result = mysqli_query($conn, $sql);
+                                            $projects = $projectsHandler->getAllProjects();
 
-                                            if ($result) {
-                                                while ($row = mysqli_fetch_assoc($result)) {
+                                            if ($projects) {
+                                                foreach ($projects as $row) {
+                                            // $sql = "SELECT * FROM projet  where nom_pro <> 'none'";
+                                            // $result = mysqli_query($conn, $sql);
+
+                                            // if ($result) {
+                                            //     while ($row = mysqli_fetch_assoc($result)) {
                                             ?>
 
                                                     <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-center font-medium text-gray-900 sm:pl-6 lg:pl-8">
@@ -164,9 +184,7 @@ $user_firstname = isset($_SESSION["prenom"]) ? $_SESSION["prenom"] : "";
                                         </tr>
                                 <?php
                                                 }
-                                                mysqli_free_result($result);
-                                            } else {
-                                                echo "Error: " . mysqli_error($conn);
+                                               
                                             }
                                 ?>
                                     </tbody>
@@ -188,7 +206,7 @@ $user_firstname = isset($_SESSION["prenom"]) ? $_SESSION["prenom"] : "";
                 <div class="sm:flex sm:items-center">
                     <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
                         <h1 class="mb-4 text-3xl font-bold leading-none tracking-tight text-gray-900 md:text-3xl lg:text-4xl dark:text-white">Affecter le rôle de Scrum Master à un projet</h1>
-                        <button onclick="openFormPopup5()" type="button"  class="relative flex rounded-lg h-[50px] w-44 items-center justify-center overflow-hidden bg-gray-800 text-white shadow-2xl transition-all before:absolute before:h-0 before:w-0 before:rounded-full before:bg-orange-600 before:duration-500 before:ease-out hover:shadow-orange-600 hover:before:h-56 hover:before:w-56"> <span class="relative z-10">Assigner scrum master</span></button>
+                        <button id = "openBtn2" type="button"  class="relative flex rounded-lg h-[50px] w-44 items-center justify-center overflow-hidden bg-gray-800 text-white shadow-2xl transition-all before:absolute before:h-0 before:w-0 before:rounded-full before:bg-orange-600 before:duration-500 before:ease-out hover:shadow-orange-600 hover:before:h-56 hover:before:w-56"> <span class="relative z-10">Assigner scrum master</span></button>
                         <div id="overlay5" class="hidden fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-40 opacity-0 transition-opacity duration-300 ease-in-out "></div>
                         <div id="popup-form5" class="hidden fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 p-4 bg-white border border-gray-300 shadow-md z-50 opacity-1 scale-110 transition-opacity transition-transform duration-300 ease-in-out ">
                             <div class="">
@@ -199,15 +217,12 @@ $user_firstname = isset($_SESSION["prenom"]) ? $_SESSION["prenom"] : "";
                                         <div class="relative mt-2 rounded-md">
                                             <select name="projet" id="" class="block rounded-md border-0 py-1.5 pl-2 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
 
-                                                <?php
-                                                $query = "SELECT id_pro,nom_pro FROM projet where nom_pro <> 'none'";
-                                                $result = mysqli_query($conn, $query);
-
-                                                while ($row = mysqli_fetch_assoc($result)) {
-                                                    echo "<option value='" . $row['id_pro'] . "'>" . $row['nom_pro'] . "</option>";
-                                                }
-
-                                                ?>
+                                         
+                                               
+                                               
+                                                
+                                               <?php echo $options; ?>                                    
+                                               
 
                                             </select>
                                         </div>
@@ -220,15 +235,9 @@ $user_firstname = isset($_SESSION["prenom"]) ? $_SESSION["prenom"] : "";
                                         <div class="relative mt-2 rounded-md">
                                             <select name="id" id="" class="block rounded-md border-0 py-1.5 pl-2 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
 
-                                                <?php
-                                                $query = "SELECT id,email FROM utilisateur where role='membre'";
-                                                $result = mysqli_query($conn, $query);
-
-                                                while ($row = mysqli_fetch_assoc($result)) {
-                                                    echo "<option value='" . $row['id'] . "'>" . $row['email'] . "</option>";
-                                                }
-                                                ?>
-
+                                           
+                                                <?php echo $memberOptions; ?>
+                                                
                                             </select>
                                         </div>
                                     </div>
@@ -269,11 +278,11 @@ $user_firstname = isset($_SESSION["prenom"]) ? $_SESSION["prenom"] : "";
 
                                         <tr>
                                             <?php
-                                            $sql = "SELECT * FROM projet inner join  utilisateur  on utilisateur.projet = projet.id_pro and utilisateur.role = 'ScrumMaster'  and nom_pro <> 'none' ";
-                                            $result = mysqli_query($conn, $sql);
+                                            $projectsWithSM = $projectsHandler->getProjectsWithScrumMaster();
 
-                                            if ($result) {
-                                                while ($row = mysqli_fetch_assoc($result)) {
+                                            if ($projectsWithSM) {
+                                                foreach ($projectsWithSM as $row) {
+                                                    print_r($row);
                                             ?>
 
                                                     <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-center font-medium text-gray-900 sm:pl-6 lg:pl-8">
@@ -299,10 +308,8 @@ $user_firstname = isset($_SESSION["prenom"]) ? $_SESSION["prenom"] : "";
                                         </tr>
                                 <?php
                                                 }
-                                                mysqli_free_result($result);
-                                            } else {
-                                                echo "Error: " . mysqli_error($conn);
-                                            }
+                                                
+                                            } 
                                 ?>
                                     </tbody>
 
@@ -317,10 +324,10 @@ $user_firstname = isset($_SESSION["prenom"]) ? $_SESSION["prenom"] : "";
     </section>
 
 
-
     <script>
          // Fonction pour ouvrir la popup
-         function openFormPopup4() {
+         
+    function openFormPopup4() {
       const overlay = document.getElementById("overlay4");
       const formPopup = document.getElementById("popup-form4");
 
@@ -328,6 +335,12 @@ $user_firstname = isset($_SESSION["prenom"]) ? $_SESSION["prenom"] : "";
       formPopup.style.display = "block";
       formPopup.classList.add("open");
     }
+    const openBtn = document.getElementById("openBtn");
+    openBtn.addEventListener("click", openFormPopup4);
+
+    const openBtn2 = document.getElementById("openBtn2");
+    openBtn2.addEventListener("click", openFormPopup5)
+   
 
     function closeFormPopup4() {
       const overlay = document.getElementById("overlay4");

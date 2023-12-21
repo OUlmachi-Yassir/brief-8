@@ -1,16 +1,25 @@
 <?php
 
-$servername = "localhost";
-$database = "dataware2";
-$username = "root";
-$password = "";
-
-$conn = mysqli_connect($servername, $username, $password, $database);
-
-if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
-}
-
 // mysqli_close($conn);
+class db {
+    private $host = "localhost";
+    private $username = "root";
+    private $password = "";
+    private $dbname = "dataware2";
+    private $conn;
+
+    public function __construct() {
+        try {
+            $this->conn = new PDO("mysql:host={$this->host};dbname={$this->dbname}", $this->username, $this->password);
+            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+        }
+    }
+
+    public function getConnection() {
+        return $this->conn;
+    }
+}
 
 ?>

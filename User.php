@@ -3,7 +3,6 @@
 class User
 {
     private $conn;
-
     public function __construct($conn)
     {
         $this->conn = $conn;
@@ -32,44 +31,45 @@ class User
         }
     }
 
-    public function authenticateUser($email, $password)
-    {
-        $query = "SELECT * FROM `utilisateur` WHERE email=? and pass=?";
-        $stmt = mysqli_prepare($this->conn, $query);
-        mysqli_stmt_bind_param($stmt, "s", $email);
-        mysqli_stmt_execute($stmt);
+   public function authenticateUser($email, $password)
+{
+    $query = "SELECT id, email, pass, role FROM `utilisateur` WHERE email=?";
 
-        $result = mysqli_stmt_get_result($stmt);
+    $stmt = $this->conn->prepare($query);
+    $stmt->bindParam(1, $email);
+    $stmt->execute();
 
-        if ($result !== false) {
-            $userData = mysqli_fetch_assoc($result);
+    $userData = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if ($userData && password_verify($password, $userData['pass'])) {
-                session_start();
-                $_SESSION['id'] = $userData['id'];
-                $role = $userData['role'];
-
-                switch ($role) {
-                    case 'membre':
-                        $_SESSION['email'] = $email;
-                        header("Location: dashboardm.php");
-                        exit();
-                    case 'ProductOwner':
-                        $_SESSION['email'] = $email;
-                        header("Location: dashboardp.php");
-                        exit();
-                    case 'ScrumMaster':
-                        $_SESSION['email'] = $email;
-                        header("Location: dashboards.php");
-                        exit();
-                }
-            } else {
-                return "L'email ou le mot de passe est incorrect.";
+    if ($userData) {
+        if (password_verify($password, $userData['pass'])) {
+            session_start();
+            $_SESSION['id'] = $userData['id'];
+            $_SESSION['email'] = $email;
+            session_write_close();
+            switch ($userData['role']) {
+                case 'membre':
+                    header("Location: dashboardm.php");
+                    exit();
+                case 'ProductOwner':
+                    header("Location: dashboardp.php");
+                    exit();
+                case 'ScrumMaster':
+                    header("Location: dashboards.php");
+                    exit();
+                default:
+                    // Handle unexpected role
+                    return "Erreur: Rôle non reconnu.";
             }
         } else {
-            return "Erreur de requête SQL : " . mysqli_error($this->conn);
+            return "Mot de passe incorrect.";
         }
+    } else {
+        return "L'email n'existe pas.";
     }
+}
+
+    
 
     public function isEmailTaken($email)
     {
@@ -88,11 +88,5 @@ class User
         mysqli_close($this->conn);
     }
 }
-
-// Usage Example:
-// $conn = mysqli_connect("your_host", "your_username", "your_password", "your_database");
-// $userHandler = new UserHandler($conn);
-
-// ... (Use $userHandler in your application)
 
 ?>
