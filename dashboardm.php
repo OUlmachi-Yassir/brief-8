@@ -1,8 +1,14 @@
 <?php
 include("connection.php");
+include("projet.php");
+include("equipe.php");
+
 
 // Initialiser la session
 session_start();
+$projects = new Projects();
+$equipeObj = new Equipe();
+
 $id = $_SESSION['id'];
 // Vérifiez si l'utilisateur est connecté, sinon redirigez-le vers la page de connexion
 if (!isset($_SESSION["email"])) {
@@ -81,22 +87,10 @@ if (!isset($_SESSION["email"])) {
                                             // $sql = "SELECT * FROM projet inner join  utilisateur  on utilisateur.projet = projet.id_pro and utilisateur.role = 'ScrumMaster' " ;
 
                                             // $sql = "SELECT * FROM utilisateur where id=$id";
-                                            $sql = "SELECT 
-                                                        projet.id_pro, 
-                                                        projet.nom_pro, 
-                                                        projet.descrp_pro
-                                                    FROM 
-                                                        utilisateur
-                                                    JOIN 
-                                                        equipe ON utilisateur.equipe = equipe.id_equipe
-                                                    JOIN 
-                                                        projet ON equipe.id_equipe = projet.id_pro
-                                                    WHERE 
-                                                        utilisateur.id = $id";
-                                            $result = mysqli_query($conn, $sql);
+                                            $projectsList = $projects->getProjectsWithScrumMaster();
 
-                                            if ($result) {
-                                                while ($row = mysqli_fetch_assoc($result)) {
+                                            if ($projectsList) {
+                                                foreach ($projectsList as $row) {
                                             ?>
                                             <tr>
                                                     <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-center font-medium text-gray-900 sm:pl-6 lg:pl-8">
@@ -116,10 +110,9 @@ if (!isset($_SESSION["email"])) {
                                                     </td>
                                         </tr>
                                 <?php
-                                                }
-                                                mysqli_free_result($result);
-                                            } else {
-                                                echo "Error: " . mysqli_error($conn);
+                                                
+                                            } 
+                                                
                                             }
                                 ?>
                                     </tbody>
@@ -158,19 +151,16 @@ if (!isset($_SESSION["email"])) {
                                         <tr>
 
                                             <?php
-                                            // $sql = "SELECT * FROM equipe inner join  utilisateur  on utilisateur.equipe = equipe.id_equipe" ;
-                                            $sql = "SELECT equipe.id_equipe, equipe.nom_equipe, equipe.date_creation
-                                            FROM utilisateur
-                                            JOIN equipe ON utilisateur.equipe = equipe.id_equipe
-                                            WHERE utilisateur.id = $id;
-                                            ";
+                                            
 
-                                            // $sql = "SELECT * FROM equipe";
-                                            $result = mysqli_query($conn, $sql);
-
-                                            if ($result) {
-                                                while ($row = mysqli_fetch_assoc($result)) {
-                                            ?>
+                                            try {
+                                                // Get equipe data based on utilisateur id
+                                                $equipeData = $equipeObj->getEquipeByUserId($id);
+                                            
+                                                // Check if equipe data exists
+                                                if ($equipeData) {
+                                                    foreach ($equipeData as $row) {
+                                                        ?>
                                                     <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-center font-medium text-gray-900 sm:pl-6 lg:pl-8">
                                                         <?php
                                                         echo $row["id_equipe"];
@@ -188,12 +178,15 @@ if (!isset($_SESSION["email"])) {
                                                     </td>
                                         </tr>
                                 <?php
-                                                }
-                                                mysqli_free_result($result);
-                                            } else {
-                                                echo "Error: " . mysqli_error($conn);
+                                                    }
+                                               } else {
+                                                echo "No equipe data found for utilisateur id: $id";
                                             }
-                                ?>
+                                        } catch (PDOException $e) {
+                                            // Handle the exception, log it, or display an error message
+                                            echo "Error: " . $e->getMessage();
+                                        }
+                                        ?>
                                     </tbody>
                                 </table>
                             </div>
