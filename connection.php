@@ -21,5 +21,6 @@ class db {
         return $this->conn;
     }
 }
-
+$connection = new db();
+$conn = $connection->getConnection();
 ?>

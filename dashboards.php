@@ -1,11 +1,17 @@
 <?php
-include("connection.php");
-include("ajoute.php");
-include("ajouteMember.php");
-include("eqptopro.php");
-include("deletemeqp.php");
+require_once('connection.php');
+require("User.php");
+require ("projet.php");
+require("equipe.php");
+
 // Initialiser la session
 session_start();
+$db = new db();
+$userHandler = new User($db);
+$equipeHandler = new Equipe();
+$projectsHandler = new Projects();
+
+
 // Vérifiez si l'utilisateur est connecté, sinon redirigez-le vers la page de connexion
 if (!isset($_SESSION["email"])) {
     header("Location: login.php");
@@ -57,10 +63,10 @@ if (!isset($_SESSION["email"])) {
             <div class="px-4 sm:px-6 lg:px-8">
                 <div class="sm:flex sm:items-center">
                     <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-                        <h1 class="mb-4 text-3xl font-bold leading-none tracking-tight text-gray-900 md:text-3xl lg:text-4xl dark:text-white"> Welcome,<span class="text-orange-500"> <?php echo htmlspecialchars($username); ?>!</span></h1>
+                        <h1 class="mb-4 text-3xl font-bold leading-none tracking-tight text-gray-900 md:text-3xl lg:text-4xl dark:text-white"> Welcome,<span class="text-orange-500"> !</span></h1>
                         <h1 class="mb-4 text-3xl font-bold leading-none tracking-tight text-gray-900 md:text-3xl lg:text-4xl dark:text-white">les equipes</h1>
                         <!-- <a href="add.php"> -->
-                        <button  onclick="openFormPopup1()" type="button" class="relative flex rounded-lg h-[50px] w-40 items-center justify-center overflow-hidden bg-gray-800 text-white shadow-2xl transition-all before:absolute before:h-0 before:w-0 before:rounded-full before:bg-orange-600 before:duration-500 before:ease-out hover:shadow-orange-600 hover:before:h-56 hover:before:w-56"> <span class="relative z-10">Ajouter une Equipe</span></button>
+                        <button  onclick="openFormPopup1()" id="openBtn" type="button" class="relative flex rounded-lg h-[50px] w-40 items-center justify-center overflow-hidden bg-gray-800 text-white shadow-2xl transition-all before:absolute before:h-0 before:w-0 before:rounded-full before:bg-orange-600 before:duration-500 before:ease-out hover:shadow-orange-600 hover:before:h-56 hover:before:w-56"> <span class="relative z-10">Ajouter une Equipe</span></button>
                         <div id="overlay1" class="hidden fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-40 opacity-0 transition-opacity duration-300 ease-in-out "></div>
                         <div id="popup-form1" class="hidden fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 p-4 bg-white border border-gray-300 shadow-md z-50 opacity-1 scale-110 transition-opacity transition-transform duration-300 ease-in-out ">
                             <div class="">
@@ -116,41 +122,39 @@ if (!isset($_SESSION["email"])) {
                                         <tr>
 
                                             <?php
-                                            $sql = "SELECT * FROM equipe  where nom_equipe <> 'none'";
-                                            $result = mysqli_query($conn, $sql);
+                                           
 
-                                            if ($result) {
-                                                while ($row = mysqli_fetch_assoc($result)) {
-                                            ?>
-                                                    <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-center font-medium text-gray-900 sm:pl-6 lg:pl-8">
-                                                        <?php
-                                                        echo $row["id_equipe"];
-                                                        ?>
-                                                    </td>
-                                                    <td class="whitespace-nowrap px-3 py-4 text-sm text-center text-gray-500">
-                                                        <?php
-                                                        echo $row["nom_equipe"];
-                                                        ?>
-                                                    </td>
-                                                    <td class="whitespace-nowrap px-3 py-4 text-sm text-center text-gray-500">
-                                                        <?php
-                                                        echo $row["date_creation"];
-                                                        ?>
-                                                    </td>
-                                                    <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-center text-sm font-medium sm:pr-6 lg:pr-8">
-                                                        <a href="edit.php?id_equipe=<?php echo $row['id_equipe']; ?>" class="bg-blue-500 hover:bg-blue-700 text-white px-5 py-3">Modifier<span class="sr-only"></span></a>
-                                                    </td>
-                                                    <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-center text-sm font-medium sm:pr-6 lg:pr-8">
-                                                        <a href="delete.php?id_equipe=<?php echo $row['id_equipe']; ?>" class="bg-red-500 hover:bg-red-700 text-white px-5 py-3">Supprimer<span class="sr-only"></span></a>
-                                                    </td>
-                                        </tr>
-                                <?php
-                                                }
-                                                mysqli_free_result($result);
-                                            } else {
-                                                echo "Error: " . mysqli_error($conn);
-                                            }
-                                ?>
+                                           
+                                           $equipes = $equipeHandler->getAllEquipes();
+                                           
+                                           if ($equipes) {
+                                               foreach ($equipes as $row) {
+                                                   ?>
+                                                   <tr>
+                                                       <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-center font-medium text-gray-900 sm:pl-6 lg:pl-8">
+                                                           <?php echo $row["id_equipe"]; ?>
+                                                       </td>
+                                                       <td class="whitespace-nowrap px-3 py-4 text-sm text-center text-gray-500">
+                                                           <?php echo $row["nom_equipe"]; ?>
+                                                       </td>
+                                                       <td class="whitespace-nowrap px-3 py-4 text-sm text-center text-gray-500">
+                                                           <?php echo $row["date_creation"]; ?>
+                                                       </td>
+                                                       <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-center text-sm font-medium sm:pr-6 lg:pr-8">
+                                                           <a href="edit.php?id_equipe=<?php echo $row['id_equipe']; ?>" class="bg-blue-500 hover:bg-blue-700 text-white px-5 py-3">Modifier<span class="sr-only"></span></a>
+                                                       </td>
+                                                       <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-center text-sm font-medium sm:pr-6 lg:pr-8">
+                                                           <a href="delete.php?id_equipe=<?php echo $row['id_equipe']; ?>" class="bg-red-500 hover:bg-red-700 text-white px-5 py-3">Supprimer<span class="sr-only"></span></a>
+                                                       </td>
+                                                   </tr>
+                                               <?php
+                                               }
+                                           } else {
+                                               echo "Error fetching equipe data.";
+                                           }
+                                           ?>
+                                           
+                            
                                     </tbody>
                                 </table>
                             </div>
@@ -168,7 +172,7 @@ if (!isset($_SESSION["email"])) {
                 <div class="sm:flex sm:items-center">
                     <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
                         <h1 class="mb-4 text-3xl font-bold leading-none tracking-tight text-gray-900 md:text-3xl lg:text-4xl dark:text-white">Affecter projet à une equipe</h1>
-                        <button onclick="openFormPopup2()" type="button" class="relative flex rounded-lg h-[50px] w-40 items-center justify-center overflow-hidden bg-gray-800 text-white shadow-2xl transition-all before:absolute before:h-0 before:w-0 before:rounded-full before:bg-orange-600 before:duration-500 before:ease-out hover:shadow-orange-600 hover:before:h-56 hover:before:w-56"> <span class="relative z-10">Assigner une equipe</span></button>
+                        <button onclick="openFormPopup2()" id="openBtn2" type="button" class="relative flex rounded-lg h-[50px] w-40 items-center justify-center overflow-hidden bg-gray-800 text-white shadow-2xl transition-all before:absolute before:h-0 before:w-0 before:rounded-full before:bg-orange-600 before:duration-500 before:ease-out hover:shadow-orange-600 hover:before:h-56 hover:before:w-56"> <span class="relative z-10">Assigner une equipe</span></button>
                         <div id="overlay2" class="hidden fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-40 opacity-0 transition-opacity duration-300 ease-in-out "></div>
                         <div id="popup-form2" class="hidden fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 p-4 bg-white border border-gray-300 shadow-md z-50 opacity-1 scale-110 transition-opacity transition-transform duration-300 ease-in-out">
                             <div class="">
@@ -181,11 +185,14 @@ if (!isset($_SESSION["email"])) {
                                             <select name="id_equipe" id="" class="block rounded-md border-0 py-1.5 pl-2 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
 
                                                 <?php
-                                                $query = "SELECT id_equipe,nom_equipe FROM equipe where nom_equipe <>'none'";
-                                                $result = mysqli_query($conn, $query);
+                                                $equipes = $equipeHandler->getAllEquipes();
 
-                                                while ($row = mysqli_fetch_assoc($result)) {
-                                                    echo "<option value='" . $row['id_equipe'] . "'>" . $row['nom_equipe'] . "</option>";
+                                                if ($equipes) {
+                                                    foreach ($equipes as $row) {
+                                                        echo "<option value='" . htmlspecialchars($row['id_equipe'], ENT_QUOTES) . "'>" . htmlspecialchars($row['nom_equipe'], ENT_QUOTES) . "</option>";
+                                                    }
+                                                } else {
+                                                    echo "Error fetching equipe data.";
                                                 }
                                                 ?>
 
@@ -199,13 +206,8 @@ if (!isset($_SESSION["email"])) {
                                             <select name="id_pro" id="" class="block rounded-md border-0 py-1.5 pl-2 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
 
                                                 <?php
-                                                $query = "SELECT id_pro,nom_pro FROM projet  where nom_pro <> 'none'";
-                                                $result = mysqli_query($conn, $query);
-
-                                                while ($row = mysqli_fetch_assoc($result)) {
-                                                    echo "<option value='" . $row['id_pro'] . "'>" . $row['nom_pro'] . "</option>";
-                                                }
-
+                                                echo $projectsHandler->getProjectOptions();
+                                              
                                                 ?>
 
                                             </select>
@@ -248,14 +250,11 @@ if (!isset($_SESSION["email"])) {
 
                                         <tr>
                                             <?php
-                                           $sql = "SELECT * FROM equipe 
-                                           INNER JOIN projet ON equipe.id_equipe = projet.id_pro 
-                                           WHERE nom_pro <> 'none'";
-                                   $result = mysqli_query($conn, $sql);
-
-                                            if ($result) {
-                                                while ($row = mysqli_fetch_assoc($result)) {
-                                            ?>
+                                          try {
+                                            $equipes = $equipeHandler->getEquipesWithProjects();
+                                        
+                                            foreach ($equipes as $row) {
+                                                ?>
 
                                                     <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-center font-medium text-gray-900 sm:pl-6 lg:pl-8">
                                                         <?php
@@ -279,12 +278,11 @@ if (!isset($_SESSION["email"])) {
                                                     </td>
                                         </tr>
                                 <?php
+                                                   }
+                                                } catch (Exception $e) {
+                                                    echo "Error: " . $e->getMessage();
                                                 }
-                                                mysqli_free_result($result);
-                                            } else {
-                                                echo "Error: " . mysqli_error($conn);
-                                            }
-                                ?>
+                                                ?>
                                     </tbody>
 
 
@@ -308,7 +306,7 @@ if (!isset($_SESSION["email"])) {
                         <h1 class="mb-4 text-3xl font-bold leading-none tracking-tight text-gray-900 md:text-3xl lg:text-4xl dark:text-white">Gérer les membres des equipes </h1>
                         <!-- <a href="add.php"> -->
 
-                        <button onclick="openFormPopup3()" type="button" class="relative flex rounded-lg h-[50px] w-56 items-center justify-center overflow-hidden bg-gray-800 text-white shadow-2xl transition-all before:absolute before:h-0 before:w-0 before:rounded-full before:bg-orange-600 before:duration-500 before:ease-out hover:shadow-orange-600 hover:before:h-60 hover:before:w-60"> <span class="relative z-10">Ajouter membre à une equipe</span></button>
+                        <button onclick="openFormPopup3()" id="openBtn3" type="button" class="relative flex rounded-lg h-[50px] w-56 items-center justify-center overflow-hidden bg-gray-800 text-white shadow-2xl transition-all before:absolute before:h-0 before:w-0 before:rounded-full before:bg-orange-600 before:duration-500 before:ease-out hover:shadow-orange-600 hover:before:h-60 hover:before:w-60"> <span class="relative z-10">Ajouter membre à une equipe</span></button>
 
                         <div id="overlay3" class="hidden fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-40 opacity-0 transition-opacity duration-300 ease-in-out "></div>
                         <div id="popup-form3" class="hidden fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 p-4 bg-white border border-gray-300 shadow-md z-50 opacity-1 scale-110 transition-opacity transition-transform duration-300 ease-in-out">
@@ -321,17 +319,7 @@ if (!isset($_SESSION["email"])) {
                                         <div class="relative mt-2 rounded-md">
                                             <select name="id" id="" class="block rounded-md border-0 py-1.5 pl-2 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
 
-                                                <?php
-                                                require('connection.php');
-
-                                                $query = "SELECT id,email FROM utilisateur where utilisateur.role = 'membre' ";
-                                                $result = mysqli_query($conn, $query);
-
-                                                while ($row = mysqli_fetch_assoc($result)) {
-                                                    echo "<option value='" . $row['id'] . "'>" . $row['email'] . "</option>";
-                                                }
-
-                                                ?>
+                                            <?php echo $userHandler->getMemberOptions(); ?>
 
                                             </select>
                                         </div>
@@ -342,14 +330,7 @@ if (!isset($_SESSION["email"])) {
                                             <select name="equipe" id="" class="block rounded-md border-0 py-1.5 pl-2 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
 
                                                 <?php
-                                                require('connection.php');
-
-                                                $query = "SELECT id_equipe,nom_equipe FROM equipe where nom_equipe <> 'none'";
-                                                $result = mysqli_query($conn, $query);
-
-                                                while ($row = mysqli_fetch_assoc($result)) {
-                                                    echo "<option value='" . $row['id_equipe'] . "'>" . $row['nom_equipe'] . "</option>";
-                                                }
+                                                echo $equipeHandler->getEquipeOptions();
                                                 ?>
 
                                             </select>
@@ -386,25 +367,13 @@ if (!isset($_SESSION["email"])) {
                                     </thead>
                                     <tbody class="divide-y divide-gray-200 bg-white">
                                         <?php
-                                        if (isset($_POST['filtrer'])) {
-                                            $selectedTeamId = $_POST['equipe'];
-
-                                            $sql = "SELECT * FROM utilisateur 
-                                                        INNER JOIN equipe ON utilisateur.equipe = equipe.id_equipe 
-                                                        WHERE utilisateur.role = 'membre' AND equipe.id_equipe = $selectedTeamId";
-                                            // echo "Generated SQL: $sql<br>";
-
-                                        } else {
-                                            $sql = "SELECT * FROM utilisateur 
-                                                        INNER JOIN equipe ON utilisateur.equipe = equipe.id_equipe 
-                                                        WHERE utilisateur.role = 'membre' and nom_equipe <> 'none'";
-                                            // echo "Generated SQL: $sql<br>";
-
-                                        }
-                                        $result = mysqli_query($conn, $sql);
-
-                                        if ($result) {
-                                            while ($row = mysqli_fetch_assoc($result)) {
+                                      if (isset($_POST['filtrer'])) {
+                                        $selectedTeamId = $_POST['equipe'];
+                                        $filteredMembers = $user->getFilteredMembers($selectedTeamId);
+                                    } else {
+                                        $filteredMembers = $user->getFilteredMembers();
+                                    }
+                                    foreach ($filteredMembers as $row) : 
                                         ?>
                                                 <tr>
                                                     <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-center font-medium text-gray-900 sm:pl-6 lg:pl-8">
@@ -429,11 +398,7 @@ if (!isset($_SESSION["email"])) {
                                                     </td>
                                                 </tr>
                                         <?php
-                                            }
-                                            mysqli_free_result($result);
-                                        } else {
-                                            echo "Error: " . mysqli_error($conn);
-                                        }
+                                        endforeach;
                                         ?>
                                     </tbody>
                                 </table>
@@ -445,6 +410,15 @@ if (!isset($_SESSION["email"])) {
         </div>
     </section>
     <script>
+        const openBtn = document.getElementById("openBtn");
+    openBtn.addEventListener("click", openFormPopup1);
+
+    const openBtn2 = document.getElementById("openBtn2");
+    openBtn2.addEventListener("click", openFormPopup2);
+
+    const openBtn3 = document.getElementById("openBtn2");
+    openBtn3.addEventListener("click", openFormPopup3);
+
         // Fonction pour ouvrir la popup
     function openFormPopup1() {
       const overlay = document.getElementById("overlay1");
@@ -463,7 +437,7 @@ if (!isset($_SESSION["email"])) {
       formPopup.style.display = "none";
       formPopup.classList.remove("open");
     }
-
+    
         // Fonction pour ouvrir la popup
         function openFormPopup2() {
       const overlay = document.getElementById("overlay2");

@@ -1,28 +1,39 @@
 <?php
-include "connection.php";
-    if (isset($_POST['edit'])) {
-        $id = $_POST['id_equipe'];
-        $name = $_POST['nom_equipe'];
-        $date = $_POST['date_creation'];
-        $sql = "UPDATE equipe SET nom_equipe='$name', date_creation='$date' WHERE id_equipe='$id'";
-        $result = mysqli_query($conn, $sql);
-        if ($result == TRUE) {
-            header('Location: dashboards.php');
-        }
+require_once('connection.php');
+
+if (isset($_POST['edit'])) {
+    $id = $_POST['id_equipe'];
+    $name = $_POST['nom_equipe'];
+    $date = $_POST['date_creation'];
+    $sql = "UPDATE equipe SET nom_equipe=:name, date_creation=:date WHERE id_equipe=:id";
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':id', $id);
+    $stmt->bindParam(':name', $name);
+    $stmt->bindParam(':date', $date);
+    $result = $stmt->execute();
+
+    if ($result) {
+        header('Location: dashboards.php');
     }
+}
 
 if (isset($_GET['id_equipe'])) {
     $id = $_GET['id_equipe'];
-    $sql = "SELECT * FROM equipe WHERE id_equipe='$id'";
-    $result = mysqli_query($conn, $sql);
-    if ($result) {
-        while ($row = mysqli_fetch_assoc($result)) {
-            $id = $row['id_equipe'];
-            $name = $row['nom_equipe'];
-            $date = $row['date_creation'];
-        }
-    ?>
+    $sql = "SELECT * FROM equipe WHERE id_equipe=:id";
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':id', $id);
+    $stmt->execute();
 
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($row) {
+        $id = $row['id_equipe'];
+        $name = $row['nom_equipe'];
+        $date = $row['date_creation'];
+    }
+    // Your HTML code here to display the form
+}
+?>
 
 
 <!doctype html>
@@ -72,10 +83,5 @@ if (isset($_GET['id_equipe'])) {
 </html>
 
 
-    <?php
-    } else{
-        header('Location: dashboards.php');
-    }
-}
-?>
+    
 

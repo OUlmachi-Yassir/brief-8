@@ -97,5 +97,39 @@ class Equipe
             die("Error: " . $e->getMessage());
         }
     }
+
+    public function getEquipesWithProjects()
+    {
+        try {
+            $conn = $this->db->getConnection();
+            $query = "SELECT equipe.id_equipe, equipe.nom_equipe, projet.nom_pro
+                      FROM equipe
+                      INNER JOIN projet ON equipe.id_equipe = projet.id_pro
+                      WHERE projet.nom_pro <> 'none'";
+            $stmt = $conn->query($query);
+
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            throw new Exception("Error: " . $e->getMessage());
+        }
+    }
+    
+    public function getEquipeOptions()
+    {
+        try {
+            $query = "SELECT id_equipe, nom_equipe FROM equipe WHERE nom_equipe <> 'none'";
+            $stmt = $this->db->getConnection()->query($query);
+
+            $options = "";
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $options .= "<option value='" . htmlspecialchars($row['id_equipe'], ENT_QUOTES) . "'>" . htmlspecialchars($row['nom_equipe'], ENT_QUOTES) . "</option>";
+            }
+
+            return $options;
+        } catch (PDOException $e) {
+            // Handle the exception, log it, or rethrow it as needed
+            die("Error: " . $e->getMessage());
+        }
+    }
 }
 ?>

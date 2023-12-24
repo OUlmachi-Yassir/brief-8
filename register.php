@@ -25,8 +25,7 @@ if (isset($_POST['submit'])) {
     }
 }
 
-// Close the database connection
-mysqli_close($conn);
+
 ?>
 <!DOCTYPE html>
 <html lang="en">

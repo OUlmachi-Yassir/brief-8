@@ -19,17 +19,26 @@ class User
         $query = "INSERT INTO `utilisateur` (nom, prenom, email, pass, tel, statut, role)
                   VALUES (?, ?, ?, ?, ?, 'active', 'membre')";
 
-        $stmt = mysqli_prepare($this->conn, $query);
-        mysqli_stmt_bind_param($stmt, "sssss", $username, $surname, $email, $hashedPassword, $tel);
+    try {
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(1, $username);
+        $stmt->bindParam(2, $surname);
+        $stmt->bindParam(3, $email);
+        $stmt->bindParam(4, $hashedPassword);
+        $stmt->bindParam(5, $tel);
 
-        $result = mysqli_stmt_execute($stmt);
+        $result = $stmt->execute();
 
-        if ($result) {
-            return true;
-        } else {
-            return "Erreur lors de l'inscription : " . mysqli_error($this->conn);
-        }
+    if ($result) {
+        return true;
+    } else {
+        return "Erreur lors de l'inscription : " . implode(", ", $stmt->errorInfo());
     }
+} catch (PDOException $e) {
+    return "Erreur lors de l'inscription : " . $e->getMessage();
+}
+}
+
 
    public function authenticateUser($email, $password)
 {
@@ -68,25 +77,70 @@ class User
         return "L'email n'existe pas.";
     }
 }
+public function getFilteredMembers($selectedTeamId = null)
+{
+    if ($selectedTeamId !== null) {
+        $query = "SELECT * FROM utilisateur 
+                  INNER JOIN equipe ON utilisateur.equipe = equipe.id_equipe 
+                  WHERE utilisateur.role = 'membre' AND equipe.id_equipe = ?";
+    } else {
+        $query = "SELECT * FROM utilisateur 
+                  INNER JOIN equipe ON utilisateur.equipe = equipe.id_equipe 
+                  WHERE utilisateur.role = 'membre' AND nom_equipe <> 'none'";
+    }
 
+    $stmt = $this->conn->prepare($query);
+
+    if ($selectedTeamId !== null) {
+        $stmt->bindParam(1, $selectedTeamId);
+    }
+
+    $stmt->execute();
+
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    return $result;
+}
     
 
-    public function isEmailTaken($email)
-    {
-        $query = "SELECT * FROM `utilisateur` WHERE email=?";
-        $stmt = mysqli_prepare($this->conn, $query);
-        mysqli_stmt_bind_param($stmt, "s", $email);
-        mysqli_stmt_execute($stmt);
+public function isEmailTaken($email)
+{
+    $query = "SELECT * FROM `utilisateur` WHERE email=?";
+    try {
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(1, $email);
+        $stmt->execute();
 
-        $result = mysqli_stmt_get_result($stmt);
-
-        return mysqli_num_rows($result) > 0;
+        return $stmt->rowCount() > 0;
+    } catch (PDOException $e) {
+        return false;
     }
+}
 
     public function closeConnection()
     {
         mysqli_close($this->conn);
     }
+
+
+    public function getMemberOptions()
+{
+    try {
+        $query = "SELECT id, email FROM utilisateur WHERE role='membre'";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+
+        $options = "";
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $options .= "<option value='" . htmlspecialchars($row['id'], ENT_QUOTES) . "'>" . htmlspecialchars($row['email'], ENT_QUOTES) . "</option>";
+        }
+
+        return $options;
+    } catch (PDOException $e) {
+        // Handle the exception, log it, or rethrow it as needed
+        die("Error: " . $e->getMessage());
+    }
+}
 }
 
 ?>
