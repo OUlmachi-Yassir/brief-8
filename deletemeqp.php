@@ -1,28 +1,13 @@
-<!-- remove member from squad  -->
-
 <?php
-require('connection.php');
+include "connection.php";
+include "User.php"; 
+
+$user = new User($conn);
 
 if (isset($_GET['id'])) {
-    $id= $_GET['id']; 
-
-    $updateQuery = "UPDATE utilisateur
-                    SET equipe = '1'
-                    WHERE id = '$id'";
-
-    $updateResult = mysqli_query($conn, $updateQuery);
-
-    if ($updateResult) {
-        header('Location: dashboards.php');
-    }
+    $userId = $_GET['id'];
+    $user->updateUserEquipe($userId);
+} else {
+    echo "User ID not provided.";
 }
 ?>
-
-
-
-  
-
-
-
-  
-

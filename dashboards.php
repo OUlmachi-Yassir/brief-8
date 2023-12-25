@@ -6,8 +6,8 @@ require("equipe.php");
 
 // Initialiser la session
 session_start();
-$db = new db();
-$userHandler = new User($db);
+
+$userHandler = new User($conn);
 $equipeHandler = new Equipe();
 $projectsHandler = new Projects();
 
@@ -16,6 +16,47 @@ $projectsHandler = new Projects();
 if (!isset($_SESSION["email"])) {
     header("Location: login.php");
     exit();
+}
+
+
+if (isset($_POST['submit'])) {
+    // Form is submitted, handle the insertion
+    $nom_equipe = $_POST['nom_equipe'];
+    $date_creation = $_POST['date_creation'];
+
+    // Validate and sanitize data if needed
+
+    // Perform the insertion
+    $result = $equipeHandler->createEquipe($nom_equipe, $date_creation);
+    
+
+    if ($result) {
+        // Insertion successful, you might want to redirect or show a success message
+        header("Location: dashboards.php");
+        exit();
+    } else {
+        // Insertion failed, handle the error (e.g., show an error message)
+        echo "Error adding equipe.";
+    }
+}
+if (isset($_POST['sbmt'])) {
+    // Form is submitted, handle the assignment
+    $id_equipe = $_POST['id_equipe'];
+    $id_pro = $_POST['id_pro'];
+
+    // Validate and sanitize data if needed
+
+    // Perform the assignment
+    $result = $equipeHandler->assignProjectToEquipe($id_equipe, $id_pro);
+
+    if ($result) {
+        // Assignment successful, you might want to redirect or show a success message
+        header("Location: dashboards.php");
+        exit();
+    } else {
+        // Assignment failed, handle the error (e.g., show an error message)
+        echo "Error assigning project to equipe.";
+    }
 }
 
 ?>
@@ -99,6 +140,7 @@ if (!isset($_SESSION["email"])) {
                         </a>
                     </div>
                 </div>
+                
                 <div class="mt-8 flex flex-col">
                     <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
                         <div class="inline-block min-w-full py-2 align-middle">
@@ -247,43 +289,34 @@ if (!isset($_SESSION["email"])) {
 
 
                                     <tbody class="divide-y divide-gray-200 bg-white">
-
-                                        <tr>
                                             <?php
-                                          try {
-                                            $equipes = $equipeHandler->getEquipesWithProjects();
-                                        
-                                            foreach ($equipes as $row) {
-                                                ?>
+                                            try {
+                                                $equipes = $equipeHandler->getEquipesWithProjects();
 
+                                                foreach ($equipes as $row) {
+                                            ?>
+                                                <tr>
                                                     <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-center font-medium text-gray-900 sm:pl-6 lg:pl-8">
-                                                        <?php
-                                                        echo $row["id_equipe"];
-                                                        ?>
+                                                        <?php echo $row["id_equipe"]; ?>
                                                     </td>
                                                     <td class="whitespace-nowrap px-3 py-4 text-sm text-center text-gray-500">
-                                                        <?php
-                                                        echo $row["nom_equipe"];
-                                                        ?>
+                                                        <?php echo $row["nom_equipe"]; ?>
                                                     </td>
                                                     <td class="whitespace-nowrap px-3 py-4 text-sm text-center text-gray-500">
-                                                        <?php
-                                                        echo $row["nom_pro"];
-                                                        ?>
+                                                        <?php echo $row["nom_pro"]; ?>
                                                     </td>
-
-
                                                     <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-center text-sm font-medium sm:pr-6 lg:pr-8">
                                                         <a href="deleteqp.php?id_equipe=<?php echo $row['id_equipe']; ?>" class="bg-red-500 hover:bg-red-700 text-white px-5 py-3">Supprimer<span class="sr-only"></span></a>
                                                     </td>
-                                        </tr>
-                                <?php
-                                                   }
-                                                } catch (Exception $e) {
-                                                    echo "Error: " . $e->getMessage();
+                                                </tr>
+                                            <?php
                                                 }
-                                                ?>
-                                    </tbody>
+                                            } catch (Exception $e) {
+                                                echo "Error: " . $e->getMessage();
+                                            }
+                                            ?>
+                                        </tbody>
+
 
 
                                 </table>
@@ -369,9 +402,9 @@ if (!isset($_SESSION["email"])) {
                                         <?php
                                       if (isset($_POST['filtrer'])) {
                                         $selectedTeamId = $_POST['equipe'];
-                                        $filteredMembers = $user->getFilteredMembers($selectedTeamId);
+                                        $filteredMembers = $userHandler->getFilteredMembers($selectedTeamId);
                                     } else {
-                                        $filteredMembers = $user->getFilteredMembers();
+                                        $filteredMembers = $userHandler->getFilteredMembers();
                                     }
                                     foreach ($filteredMembers as $row) : 
                                         ?>
@@ -416,7 +449,7 @@ if (!isset($_SESSION["email"])) {
     const openBtn2 = document.getElementById("openBtn2");
     openBtn2.addEventListener("click", openFormPopup2);
 
-    const openBtn3 = document.getElementById("openBtn2");
+    const openBtn3 = document.getElementById("openBtn3");
     openBtn3.addEventListener("click", openFormPopup3);
 
         // Fonction pour ouvrir la popup

@@ -63,6 +63,24 @@ class Equipe
             die("Error: " . $e->getMessage());
         }
     }
+        public function assignProjectToEquipe($id_equipe, $id_pro) {
+            try {
+                $conn = $this->db->getConnection();
+        
+                // Update the equipe table to associate the project
+                $query = "UPDATE equipe SET id_pro = ? WHERE id_equipe = ?";
+                $stmt = $conn->prepare($query);
+                $stmt->bindParam(1, $id_pro, PDO::PARAM_INT);
+                $stmt->bindParam(2, $id_equipe, PDO::PARAM_INT);
+                $result = $stmt->execute();
+        
+                return $result;
+            } catch (PDOException $e) {
+                // Handle the exception, log it, or rethrow it as needed
+                echo "Error: " . $e->getMessage();
+                return false;
+            }
+        }
 
     public function deleteEquipe($equipeId)
     {
@@ -113,7 +131,7 @@ class Equipe
             throw new Exception("Error: " . $e->getMessage());
         }
     }
-    
+
     public function getEquipeOptions()
     {
         try {

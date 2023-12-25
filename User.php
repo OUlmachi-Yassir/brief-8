@@ -81,11 +81,11 @@ public function getFilteredMembers($selectedTeamId = null)
 {
     if ($selectedTeamId !== null) {
         $query = "SELECT * FROM utilisateur 
-                  INNER JOIN equipe ON utilisateur.equipe = equipe.id_equipe 
+                  INNER JOIN equipe ON utilisateur.equipe_id = equipe.id_equipe 
                   WHERE utilisateur.role = 'membre' AND equipe.id_equipe = ?";
     } else {
         $query = "SELECT * FROM utilisateur 
-                  INNER JOIN equipe ON utilisateur.equipe = equipe.id_equipe 
+                  INNER JOIN equipe ON utilisateur.equipe_id = equipe.id_equipe 
                   WHERE utilisateur.role = 'membre' AND nom_equipe <> 'none'";
     }
 
@@ -141,6 +141,31 @@ public function isEmailTaken($email)
         die("Error: " . $e->getMessage());
     }
 }
+
+
+public function updateUserEquipe($userId)
+{
+    try {
+        $validEquipeId = 1; // Replace with a valid equipe_id value
+
+        $updateQuery = "UPDATE utilisateur SET equipe_id = :equipe_id WHERE id = :id";
+        $stmt = $this->conn->prepare($updateQuery);
+        $stmt->bindParam(':equipe_id', $validEquipeId, PDO::PARAM_INT);
+        $stmt->bindParam(':id', $userId, PDO::PARAM_INT);
+
+        $updateResult = $stmt->execute();
+
+        if ($updateResult) {
+            header('Location: dashboards.php');
+        } else {
+            echo "Error updating user's equipe.";
+        }
+    } catch (PDOException $e) {
+        echo "Error: " . $e->getMessage();
+    }
+}
+
+
 }
 
 ?>
